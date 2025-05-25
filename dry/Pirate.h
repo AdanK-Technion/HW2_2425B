@@ -4,19 +4,30 @@
 
 using std::string;
 
+enum DEVIL_FRUIT {
+    GUM_GUM_FRUIT,
+    SMOKE_SMOKE_FRUIT,
+    FLAME_FLAME_FRUIT,
+    RUMBLE_RUMBLE_FRUIT,
+    STRING_STRING_FRUIT,
+    ICE_ICE_FRUIT,
+    NONE
+};
+
 class Pirate {
 private:
     string name;
     int bounty;
+    DEVIL_FRUIT devilFruit;
 
 public:
-    Pirate();
+    Pirate(const string &name = "", int bounty = 0,
+           DEVIL_FRUIT fruit = DEVIL_FRUIT::NONE);
 
-    Pirate(const string &name);
+    Pirate(int bounty, DEVIL_FRUIT devilFruit = DEVIL_FRUIT::NONE);
 
-    Pirate(const int bounty);
+    Pirate(DEVIL_FRUIT devilFruit);
 
-    Pirate(const string &name, const int bounty);
 
     ~Pirate() = default;
 
@@ -24,7 +35,12 @@ public:
 
     void setBounty(const int bounty);
 
+    void setDevilFruit(DEVIL_FRUIT devilFruit);
+
+
     string getName();
+
+    DEVIL_FRUIT getDevilFruit();
 
     int getBounty();
 
