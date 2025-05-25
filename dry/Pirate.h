@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <iostream>
@@ -10,11 +9,12 @@ private:
     string name;
 
 public:
-    Pirate(const string& name);
 
+    Pirate(const string &name);
+    Pirate();
     ~Pirate() = default;
 
-    void setName(const string& name);
+    void setName(const string &name);
 
     string getName();
 
