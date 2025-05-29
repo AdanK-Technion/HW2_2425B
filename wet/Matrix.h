@@ -7,21 +7,20 @@ class Matrix {
 private:
     int rows;
     int columns;
-    int value;
-    int *array;
+    double value;
+    double *array;
 
 public:
-    Matrix(int rows = 0, int columns = 0, int value = 0);
+    Matrix(int rows = 0, int columns = 0, double value = 0);
 
     ~Matrix();
 
-    int &operator()(int r, int c);
+    double &operator()(int rows, int columns);
 
-    int operator()(int r, int c) const;
+    double operator()(int rows, int columns) const;
 
     friend std::ostream &operator<<(std::ostream &os, Matrix const &matrix);
 
-    // 1) binary +, -, *  (return new Matrix)
     Matrix operator+(Matrix const &matrix) const;
 
     Matrix operator-(Matrix const &matrix) const;
@@ -30,7 +29,7 @@ public:
 
     Matrix operator*(Matrix const &matrix) const;
 
-    Matrix operator*(int number) const;
+    Matrix operator*(double number) const;
 
     Matrix &operator+=(Matrix const &matrix);
 
@@ -38,9 +37,21 @@ public:
 
     Matrix &operator*=(Matrix const &matrix);
 
-    Matrix &operator*=(int number);
+    Matrix &operator*=(double number);
 
     friend bool operator==(Matrix const &matrix1, Matrix const &matrix2);
 
     friend bool operator!=(Matrix const &matrix1, Matrix const &matrix2);
+
+    void rotateClockwise();
+
+    void rotateCounterClockwise();
+
+    void transpose();
+
+    double calcFrobeniusNorm();
+
+    double calcDeterminant();
+
+    friend double helperForDeterminant(Matrix const &matrix);
 };

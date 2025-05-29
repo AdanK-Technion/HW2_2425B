@@ -1,16 +1,16 @@
 #include "Matrix.h"
 
+#include <cmath>
+
 #include "Utilities.h"
-#includ "Utilities.h"
-Matrix::Matrix(int rows, int columns, int value): rows(rows), columns(columns),
-                                                  value(value) {
+
+Matrix::Matrix(int rows, int columns, double value): rows(rows),
+    columns(columns),
+    value(value) {
     if (columns < 0 || rows < 0) {
         exitWithError(MatamErrorType::OutOfBounds);
-        this->rows = 0;
-        this->columns = 0;
-        this->value = 0;
     } else {
-        this->array = new int[this->rows * this->columns];
+        this->array = new double[this->rows * this->columns];
     }
     for (int i = 0; i < this->rows * this->columns; i++) {
         this->array[i] = value;
@@ -21,20 +21,20 @@ Matrix::~Matrix() {
     delete[] array;
 }
 
-int &Matrix::operator()(int rows, int columns) {
+double &Matrix::operator()(int rows, int columns) {
     if (rows < 0 || rows >= this->rows || columns < 0 || columns >= this->
         columns) {
         exitWithError(MatamErrorType::OutOfBounds);
     }
-    return array[rows * columns + columns];
+    return array[rows * this->columns + columns];
 }
 
-int Matrix::operator()(int rows, int columns) const {
+double Matrix::operator()(int rows, int columns) const {
     if (rows < 0 || rows >= this->rows || columns < 0 || columns >= this->
         columns) {
         exitWithError(MatamErrorType::OutOfBounds);
     }
-    return array[rows * columns + columns];
+    return array[rows * this->columns + columns];
 }
 
 std::ostream &operator<<(std::ostream &os, Matrix const &matrix) {
@@ -67,11 +67,11 @@ Matrix &Matrix::operator*=(Matrix const &matrix) {
     if (this->columns != matrix.rows)
         exitWithError(MatamErrorType::UnmatchedSizes);
     int oldColumns = this->columns, newColumns = matrix.columns;
-    int *oldArray = this->array;
-    this->array = new int[this->rows * matrix.columns];
+    double *oldArray = this->array;
+    this->array = new double[this->rows * matrix.columns];
     for (int i = 0; i < this->rows; i++) {
         for (int j = 0; j < matrix.columns; j++) {
-            int sum = 0;
+            double sum = 0;
             for (int k = 0; k < this->columns; k++) {
                 sum += oldArray[i * oldColumns + k] * matrix(k, j);
             }
@@ -83,7 +83,7 @@ Matrix &Matrix::operator*=(Matrix const &matrix) {
     return *this;
 }
 
-Matrix &Matrix::operator*=(int number) {
+Matrix &Matrix::operator*=(double number) {
     for (int i = 0; i < this->columns * this->rows; i++) {
         this->array[i] *= number;
     }
@@ -116,7 +116,7 @@ Matrix Matrix::operator*(Matrix const &matrix) const {
     return multiplyMatrix;
 }
 
-Matrix Matrix::operator*(int number) const {
+Matrix Matrix::operator*(double number) const {
     Matrix multiplyMatrix(*this);
     multiplyMatrix *= number;
     return multiplyMatrix;
@@ -136,4 +136,87 @@ bool operator==(Matrix const &matrix1, Matrix const &matrix2) {
 
 bool operator!=(Matrix const &matrix1, Matrix const &matrix2) {
     return !(matrix1 == matrix2);
+}
+
+void Matrix::rotateClockwise() {
+    int oldRows = this->rows, oldColumns = this->columns;
+    this->rows = oldColumns;
+    this->columns = oldRows;
+    double *oldArray = this->array;
+    this->array = new double[this->rows * this->columns];
+    for (int i = 0; i < oldRows; i++) {
+        for (int j = 0; j < oldColumns; j++) {
+            this->array[this->columns * j + (this->columns - i - 1)] = oldArray[
+                oldColumns * i + j];
+        }
+    }
+    delete[] oldArray;
+}
+
+void Matrix::rotateCounterClockwise() {
+    this->rotateClockwise();
+    this->rotateClockwise();
+    this->rotateClockwise();
+}
+
+void Matrix::transpose() {
+    int oldRows = this->rows, oldColumns = this->columns;
+    this->rows = oldColumns;
+    this->columns = oldRows;
+    double *oldArray = this->array;
+    this->array = new double[this->rows * this->columns];
+    for (int i = 0; i < this->rows; i++) {
+        for (int j = 0; j < this->columns; j++) {
+            this->array[this->columns * i + j] = oldArray[oldColumns * j + i];
+        }
+    }
+    delete[] oldArray;
+}
+
+double Matrix::calcFrobeniusNorm() {
+    double sum = 0;
+    for (int i = 0; i < this->rows; i++) {
+        for (int j = 0; j < this->columns; j++) {
+            sum = sum + ((*this)(i, j) * (*this)(i, j));
+        }
+    }
+    sum = pow(sum, 0.5);
+    return sum;
+}
+
+double helperForDeterminant(Matrix const &matrix) {
+    if (matrix.rows == 1) {
+        return matrix(0, 0);
+    }
+    if (matrix.rows == 2) {
+        return (matrix(0, 0) * matrix(1, 1)
+                - matrix(0, 1) * matrix(1, 0));
+    }
+    double sum = 0;
+    for (int i = 0; i < matrix.columns; i++) {
+        Matrix temp(matrix.rows - 1, matrix.columns - 1);
+        for (int j = 0; j < temp.rows; j++) {
+            for (int k = 0; k < temp.columns; k++) {
+                if (k < i) {
+                    temp(j, k) = matrix(j + 1, k);
+                } else {
+                    temp(j, k) = matrix(j + 1, k + 1);
+                }
+            }
+        }
+        if (i % 2 == 0) {
+            sum += matrix(0, i) * helperForDeterminant(temp);
+        } else {
+            sum -= matrix(0, i) * helperForDeterminant(temp);
+        }
+    }
+    return sum;
+}
+
+
+double Matrix::calcDeterminant() {
+    if (this->rows != this->columns) {
+        exitWithError(MatamErrorType::NotSquareMatrix);
+    }
+    return helperForDeterminant(*this);
 }
